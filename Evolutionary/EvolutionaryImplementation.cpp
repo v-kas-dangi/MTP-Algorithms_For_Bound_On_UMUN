@@ -7,7 +7,7 @@ typedef long long ll;
         First line contains the integer n, m and q- the number of vertices and edges of the graph and the number of sessions.
         The next m lines: In each line we have two integers u and v representing an undirected edge between u and v.
         The next q lines: For every ith line we have two integers si and ti, representing the source and sink associated with the ith session.
-        Constraints:
+        raints:
             0<=u, v<n
             For 0<=si, ti<n
 */
@@ -15,7 +15,10 @@ typedef long long ll;
 int n,m,q;
 vector<pair<int,int>> edges, sessions;
 vector<vector<int>> result, adj, adjMatrix;
-int POPULATION_COUNT=20;
+int POPULATION_SIZE=20;
+int MAX_GENERATIONS=100;
+int CROSSOVER_PROBABILITY=0.7;
+int MUTATION_PROBABILITY=0.05;
 
 int find_set(int v, vector<int> &dsu_par) 
 {
@@ -96,7 +99,7 @@ void encoding_individual(vector<int> &dsu_par, vector<int> &individual){
     int partition_id=0;
     for(auto i: dsu_par){
         if(i<0){
-            set<int> nodes_in_set = retrieve_partition(i, dsu_par);
+            set<int> nodes_in_set = retrieve_partition(find_set(i, dsu_par), dsu_par);
             for (int node : nodes_in_set) {
                 individual[node] = partition_id;
             }
@@ -126,13 +129,14 @@ vector<vector<int>> generate_population(){
     random_device rd;
     mt19937 g(rd());
     vector<vector<int>> population;
-    for(int i=0; i<POPULATION_COUNT; i++){
+    for(int i=0; i<POPULATION_SIZE; i++){
         shuffle(sessions.begin(), sessions.end(), g);
         population.push_back(generate_individual());
     }
     return population;
 }
 
+// fitness function
 int fitness(vector<int> &individual){
     int ans=0;
     for(auto i:sessions){
@@ -143,6 +147,76 @@ int fitness(vector<int> &individual){
     }
     return ans;
 }
+
+// Function to perform elitism by copying the best individuals to the next generation
+void elitism(vector<vector<int>>& currentPopulation, vector<vector<int>>& nextPopulation, int elitismCount) {
+    // Sort the current population by fitness
+    vector<pair<int, vector<int>>> sortedPopulation;
+    for (auto &individual : currentPopulation) {
+        sortedPopulation.push_back({fitness(individual), individual});
+    }
+    sort(sortedPopulation.begin(), sortedPopulation.end(), greater<>());
+    // Copy the best individuals (elitismCount) to the next generation
+    for (int i = 0; i < elitismCount; ++i) {
+        nextPopulation[i] = sortedPopulation[i].second;
+    }
+}
+
+// Function to perform one-point crossover between two parents
+vector<int> crossover(vector<int>& parent1,  vector<int>& parent2) {
+    // Ensure the parents are of the same size
+    if (parent1.size() != parent2.size()) {
+        cerr << "Error: Parents have different sizes for crossover." << endl;
+        exit(1); // Or handle the error in an appropriate way
+    }
+
+    // Choose a random crossover point
+    int crossoverPoint = rand() % (parent1.size() - 1) + 1; // Ensure crossover point is not at the beginning
+
+    // Create a child by combining genetic material from both parents
+    vector<int> child(parent1.begin(), parent1.begin() + crossoverPoint);
+    child.insert(child.end(), parent2.begin() + crossoverPoint, parent2.end());
+
+    return child;
+}
+
+// Function to perform one-point mutation in an individual
+void mutate(vector<int>& individual) {
+    // Choose a random gene to mutate
+    int mutationPoint = rand() % individual.size();
+
+    // Mutate the selected gene (you can customize the mutation logic)
+    individual[mutationPoint] = rand() % 100; // Replace with your mutation logic
+}
+
+// Function to evolve the population through crossover and mutation
+void evolvePopulation(vector<vector<int>> &currentPopulation, vector<vector<int>> &nextPopulation,
+                      int elitismCount, double crossoverProbability, double mutationProbability) {
+    // Perform elitism
+    elitism(currentPopulation, nextPopulation, elitismCount);
+
+    // Perform crossover and mutation
+    int crossoverStartIndex = elitismCount;
+    while (crossoverStartIndex < nextPopulation.size()) {
+        // Select parents (you can use tournament selection, roulette wheel, etc.)
+        vector<int> parent1 = currentPopulation[rand() % currentPopulation.size()];
+        vector<int> parent2 = currentPopulation[rand() % currentPopulation.size()];
+
+        // Perform crossover with a certain probability
+        if (rand() / static_cast<double>(RAND_MAX) < crossoverProbability) {
+            // Apply crossover
+            vector<int> child = crossover(parent1, parent2);
+
+            // Perform mutation with a certain probability
+            if (rand() / static_cast<double>(RAND_MAX) < mutationProbability) {
+                mutate(child);
+            }
+
+            nextPopulation[crossoverStartIndex++] = child;
+        }
+    }
+}
+
 
 int main()
 {
