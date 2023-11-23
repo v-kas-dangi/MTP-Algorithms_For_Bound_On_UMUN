@@ -17,6 +17,7 @@ vector<pair<int,int>> edges, sessions;
 vector<vector<int>> result, adj, adjMatrix;
 int POPULATION_SIZE=20;
 int MAX_GENERATIONS=100;
+int ELITISM_COUNT=20;
 int CROSSOVER_PROBABILITY=0.7;
 int MUTATION_PROBABILITY=0.05;
 
@@ -218,10 +219,33 @@ void evolvePopulation(vector<vector<int>> &currentPopulation, vector<vector<int>
 }
 
 
+
+void repair_individual(vector<int> &individual){
+
+}
+
+void repair_population(){
+
+}
+
+int genetic_algorithm(){
+    vector<vector<int>> currentPopulation=generate_population();
+    for (int generation = 0; generation < MAX_GENERATIONS; ++generation) {
+        // Evolve the population
+        vector<vector<int>> nextPopulation;
+        evolvePopulation(currentPopulation, nextPopulation, ELITISM_COUNT, CROSSOVER_PROBABILITY, MUTATION_PROBABILITY);
+        // Replace the current population with the next generation
+        currentPopulation = nextPopulation;
+    }
+}
+
 int main()
 {
     ios_base::sync_with_stdio(false); cin.tie(NULL);
+    srand(static_cast<unsigned int>(time(0)));
     input();
+
+    
 
     return 0;   
 }
