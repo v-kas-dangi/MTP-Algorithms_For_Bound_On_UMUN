@@ -97,9 +97,9 @@ bool can_merge(set<int> &partition1, set<int> &partition2){
 }
 void encoding_individual(vector<int> &dsu_par, vector<int> &individual){
     int partition_id=0;
-    for(auto i: dsu_par){
-        if(i<0){
-            set<int> nodes_in_set = retrieve_partition(find_set(i, dsu_par), dsu_par);
+    for(int i=0; i<dsu_par.size(); i++){
+        if(dsu_par[i]<0){
+            set<int> nodes_in_set = retrieve_partition(i, dsu_par);
             for (int node : nodes_in_set) {
                 individual[node] = partition_id;
             }
