@@ -15,23 +15,26 @@ typedef long long ll;
 int n,m,q;
 vector<pair<int,int>> edges, sessions;
 vector<vector<int>> result, adj, adjMatrix;
-vector<int> parent, rank_set;
+int POPULATION_COUNT=20;
 
-int find_set(int v) {
-    if (parent[v]==-1)
-        return v;
-    return parent[v] = find_set(parent[v]);
+int find_set(int v, vector<int> &dsu_par) 
+{
+  if (dsu_par[v]<0)
+    return v;
+  return dsu_par[v]=find_set(dsu_par[v], dsu_par);
 }
 
-void union_sets(int a, int b) {
-    a = find_set(a);
-    b = find_set(b);
-    if (a != b) {
-        if (rank_set[a] < rank_set[b])
-            swap(a, b);
-        parent[b] = a;
-        rank_set[a] += rank_set[b];
-    }
+void union_sets(int a, int b, vector<int> &dsu_par)
+{
+  a = find_set(a, dsu_par);
+  b = find_set(b, dsu_par);
+  if (a != b)
+  {
+    if(dsu_par[a]>dsu_par[b])
+      swap(a, b);
+    dsu_par[a]+=dsu_par[b];
+    dsu_par[b] = a;
+  }
 }
 
 void input(){
@@ -68,22 +71,73 @@ bool checkEdgeExists(int source, int sink){
     return false;
 }
 
-void make partitions(){
-    for(auto it:sessions){
-        if(!checkEdgeExists(it.first, it.second)){
-            //add to partition
-            int first_parent = find_set(it.first);
-            int second_parent = find_set(it.second);
+// given a node function will return a vector of nodes in the same partition.
+set<int> retrieve_partition(int node, vector<int> &dsu_par){
+    int root = find_set(node, dsu_par);
+    set<int> nodes_in_set;
+    for (int i = 0; i < dsu_par.size(); ++i) {
+        if (find_set(i, dsu_par) == root) {
+            nodes_in_set.insert(i);
+        }
+    }
+    return nodes_in_set;
+}
+bool can_merge(set<int> &partition1, set<int> &partition2){
+    for(auto u:partition1){
+        for(auto v:adj[u]){
+            if(partition2.find(v)!=partition2.end()){
+                return false;
+            }
+        }
+    }
+    return true;
+}
+void dsu_to_encoded(vector<int> &dsu_par, vector<int> &encoded){
+    int partition_id=0;
+    for(auto i: dsu_par){
+        if(i<0){
+            set<int> nodes_in_set = retrieve_partition(i, dsu_par);
+            for (int node : nodes_in_set) {
+                encoded[node] = partition_id;
+            }
+            partition_id++;
         }
     }
 }
+vector<int> generate_individual(){
+    vector<int> dsu_par(n+1, -1);
+    for(auto session:sessions){
+        int s=session.first;
+        int t=session.second;
+        if(find_set(s, dsu_par)!=find_set(t, dsu_par)){
+            set<int> partition1=retrieve_partition(s, dsu_par);
+            set<int> partition2=retrieve_partition(t, dsu_par);
+            if(can_merge(partition1, partition2)){
+                union_sets(s, t, dsu_par);
+            }
+        }
+    }
+    vector<int> encoded(n+1);
+    dsu_to_encoded(dsu_par, encoded);
+    return encoded;
+}
+vector<vector<int>> generate_population(){
+    random_device rd;
+    mt19937 g(rd());
+    vector<vector<int>> population;
+    for(int i=0; i<POPULATION_COUNT; i++){
+        shuffle(sessions.begin(), sessions.end(), g);
+        vector<int> individual=generate_individual();
+        population.push_back(individual);
+    }
+    return population;
+}
+
 
 int main()
 {
     ios_base::sync_with_stdio(false); cin.tie(NULL);
     input();
-    parent.resize(n,-1);
-    rank_set.resize(n,1);
     vector<int> encode(n+1);
     for(int u=0; u<n; u++){
         cout<<u<<": ";
@@ -92,21 +146,5 @@ int main()
         }
         cout<<endl;
     }
-    // generateArrays(n, 0, encode, result);
-    // int finalAns=0;
-    // vector<int> ansPartition;
-    // for(auto partition:result){
-    //     if(checkIndependence(partition)){
-    //         if(finalAns<checkSessions(partition)){
-    //             finalAns=checkSessions(partition);
-    //             ansPartition=partition;
-    //         }
-    //     }
-    // }
-    // cout<<finalAns<<endl;
-    // for(auto i:ansPartition){
-    //     cout<<i<<" ";
-    // }
-    // cout<<endl;
-    // return 0;
+    return 0;   
 }
