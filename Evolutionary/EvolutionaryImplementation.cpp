@@ -224,14 +224,13 @@ void evolvePopulation(vector<vector<int>> &currentPopulation, vector<vector<int>
         // Perform crossover with a certain probability
         if (rand() / static_cast<double>(RAND_MAX) < crossoverProbability) {
             // Apply crossover
-            vector<int> child = crossover(parent1, parent2);
-
+            vector<int> individual = crossover(parent1, parent2);
             // Perform mutation with a certain probability
             if (rand() / static_cast<double>(RAND_MAX) < mutationProbability) {
-                mutate(child);
+                mutate(individual);
             }
-
-            nextPopulation[crossoverStartIndex++] = child;
+            repair_individual(individual);
+            nextPopulation[crossoverStartIndex++] = individual;
         }
     }
 }
@@ -266,17 +265,30 @@ int reassign_partition_number(vector<int> &individual){
     return partition_id;
 }
 
-bool can_assign(vector<int> &individual){
-    
+int can_assign(vector<int> &individual, int u){
+    vector<int> valid_destinations;
+    map<int, int> taken;
+    for(int i=0; i<n; i++){
+        if(!checkEdgeExists(u, i) && individual[u]!=individual[i]){
+            if(taken.find(individual[i])!=taken.end()){
+                valid_destinations.push_back(individual[i]);
+                taken[individual[i]]=1;
+            }
+        }
+    }
+    int num_valids=valid_destinations.size();
+    if(num_valids>0)
+        return valid_destinations[rand()%num_valids];
+    else return -1;
 }
 
 void repair_individual(vector<int> &individual){
     int partition_id=reassign_partition_number(individual);
+    vector<pair<int, int>> defs=get_defs(individual);
     random_device rd;
     mt19937 g(rd());
-    mt19937 gen(rd());
-    vector<pair<int, int>> defs=get_defs(individual);
     uniform_real_distribution<double> dis(0.0, 1.0);
+    mt19937 gen(rd());
     double randValue = dis(gen);
     if (randValue < 0.5) {
         shuffle(defs.begin(), defs.end(), g);
@@ -285,18 +297,25 @@ void repair_individual(vector<int> &individual){
         int u=it.first;
         int v=it.second;
         if(individual[u]==individual[v]){
-
+            int partition=can_assign(individual, u);
+            if(partition!=-1) individual[u]=partition;
+            else{
+                int partition=can_assign(individual, v);
+                if(partition!=-1) individual[v]=partition;
+                else{
+                    randValue=dis(gen);
+                    if(randValue<0.5){
+                        individual[u]=partition_id;
+                    }else{
+                        individual[v]=partition_id;
+                    }
+                    partition_id++;
+                }
+            }
         }
     }
-
-
-
-
 }
 
-void repair_population(){
-
-}
 
 void genetic_algorithm(){
     vector<vector<int>> currentPopulation=generate_population();
