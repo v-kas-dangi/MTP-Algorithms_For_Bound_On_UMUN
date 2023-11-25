@@ -1,7 +1,6 @@
 #include <bits/stdc++.h>
 using namespace std;
 typedef long long ll;
-
 // Function to generate a random graph with independent partitions
 void generateGraph(int N, int Q, int num_partitions, double edgeProbability, double sessionProbability, string inputFileName, string outputFileName) {
     random_device rd;
@@ -16,8 +15,13 @@ void generateGraph(int N, int Q, int num_partitions, double edgeProbability, dou
         nodePartitions[i] = randNum;
         partition_count[randNum]++;
     }
-    cout<<"Number of partition formed: "<< partition_count.size()<<"\n";
-    // Create an adjacency matrix for the graph
+    ofstream partitionDetailsFile("PartitionDetails.txt");
+    partitionDetailsFile << "Number of partition formed: "<< partition_count.size()<<"\n";
+    for(auto i:nodePartitions){
+        partitionDetailsFile<<i<<" ";
+    }
+        partitionDetailsFile<<endl;
+    partitionDetailsFile.close();
     vector<vector<bool>> graph(N, vector<bool>(N, false));
     int M=0;
     // Connect nodes across partitions with probability edgeProbability

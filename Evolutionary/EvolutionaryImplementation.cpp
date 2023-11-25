@@ -15,10 +15,10 @@ typedef long long ll;
 int n,m,q;
 vector<pair<int,int>> edges, sessions;
 vector<vector<int>> result, adj, adjMatrix;
-int POPULATION_SIZE=20;
+int POPULATION_SIZE=100;
 int MAX_GENERATIONS=100;
 int ELITISM_COUNT=10;
-int CROSSOVER_PROBABILITY=0.7;
+int CROSSOVER_PROBABILITY=1.0;
 int MUTATION_PROBABILITY=0.05;
 
 int find_set(int v, vector<int> &dsu_par) 
@@ -182,7 +182,7 @@ bool shouldCrossoverMutate(int prob) {
     int probability = distribution(gen);
 
     // Check if the generated probability is greater than 80%
-    return probability > prob;
+    return probability < prob;
 }
 
 // Function to perform one-point crossover between two parents
@@ -324,8 +324,13 @@ void genetic_algorithm(){
         evolvePopulation(currentPopulation, nextPopulation, ELITISM_COUNT, CROSSOVER_PROBABILITY, MUTATION_PROBABILITY);
         // Replace the current population with the next generation
         currentPopulation = nextPopulation;
+        cout<<"Fitness for generation "<<generation<<" : "<<fitness(currentPopulation[0])<<endl;
     }
-    cout<<"Final answer "<<fitness(currentPopulation[0])<<endl;
+    cout<<"Final Fitness: "<<fitness(currentPopulation[0])<<endl;
+    cout<<"Final Partition: "<<endl;
+    for(auto i:currentPopulation[0]){
+        cout<<i<<" ";
+    }cout<<endl;
 }
 
 int main()
