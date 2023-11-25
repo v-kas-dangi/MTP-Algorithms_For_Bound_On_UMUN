@@ -17,7 +17,7 @@ vector<pair<int,int>> edges, sessions;
 vector<vector<int>> result, adj, adjMatrix;
 int POPULATION_SIZE=20;
 int MAX_GENERATIONS=100;
-int ELITISM_COUNT=20;
+int ELITISM_COUNT=5;
 int CROSSOVER_PROBABILITY=0.7;
 int MUTATION_PROBABILITY=0.05;
 
@@ -108,6 +108,12 @@ void encoding_individual(vector<int> &dsu_par, vector<int> &individual){
         }
     }
 }
+void printVector(vector<int> &arr){
+    for(auto i:arr){
+        cout<<i<<" ";
+    }
+        cout<<endl;
+}
 vector<int> generate_individual(){
     vector<int> dsu_par(n+1, -1);
     for(auto session:sessions){
@@ -153,13 +159,25 @@ int fitness(vector<int> &individual){
 void elitism(vector<vector<int>>& currentPopulation, vector<vector<int>>& nextPopulation, int elitismCount) {
     // Sort the current population by fitness
     vector<pair<int, vector<int>>> sortedPopulation;
+    set<pair<int, vector<int>>> sortedPop;
     for (auto &individual : currentPopulation) {
         sortedPopulation.push_back({fitness(individual), individual});
+        sortedPop.insert({fitness(individual), individual});
     }
     sort(sortedPopulation.begin(), sortedPopulation.end(), greater<>());
-    // Copy the best individuals (elitismCount) to the next generation
-    for (int i = 0; i < elitismCount; ++i) {
-        nextPopulation[i] = sortedPopulation[i].second;
+    // for(auto individual : sortedPop){
+    //     cout<<individual.first<<": ";
+    //     printVector(individual.second);
+    //     cout<<endl;
+    // }
+    int index=0;
+    set<pair<int, vector<int>>>::reverse_iterator rit;
+    for(rit=sortedPop.rbegin(); rit != sortedPop.rend(); rit++){
+        if(index<elitismCount){
+            pair<int, vector<int>> ritto = *rit;
+            nextPopulation.push_back(ritto.second);
+            index++;
+        }
     }
 }
 
@@ -197,7 +215,7 @@ void evolvePopulation(vector<vector<int>> &currentPopulation, vector<vector<int>
     elitism(currentPopulation, nextPopulation, elitismCount);
 
     // Perform crossover and mutation
-    int crossoverStartIndex = elitismCount;
+    int crossoverStartIndex = min(elitismCount, (int)nextPopulation.size());
     while (crossoverStartIndex < nextPopulation.size()) {
         // Select parents (you can use tournament selection, roulette wheel, etc.)
         vector<int> parent1 = currentPopulation[rand() % currentPopulation.size()];
@@ -228,7 +246,7 @@ void repair_population(){
 
 }
 
-int genetic_algorithm(){
+void genetic_algorithm(){
     vector<vector<int>> currentPopulation=generate_population();
     for (int generation = 0; generation < MAX_GENERATIONS; ++generation) {
         // Evolve the population
@@ -244,8 +262,20 @@ int main()
     ios_base::sync_with_stdio(false); cin.tie(NULL);
     srand(static_cast<unsigned int>(time(0)));
     input();
-
-    
+    vector<vector<int>> population = generate_population();
+    // n=population.size();
+    for(auto individual : population){
+        printVector(individual);
+    }
+    vector<vector<int>> nextPopulation;
+    elitism(population, nextPopulation, ELITISM_COUNT);
+    // evolvePopulation(population, nextPopulation, ELITISM_COUNT, CROSSOVER_PROBABILITY, MUTATION_PROBABILITY);
+    for(auto individual : nextPopulation){
+        for(auto node : individual){
+            cout<<node<<" ";
+        }
+        cout<<endl;
+    }
 
     return 0;   
 }

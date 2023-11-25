@@ -165,11 +165,11 @@ void elitism(vector<vector<int>>& currentPopulation, vector<vector<int>>& nextPo
         sortedPop.insert({fitness(individual), individual});
     }
     sort(sortedPopulation.begin(), sortedPopulation.end(), greater<>());
-    for(auto individual : sortedPop){
-        cout<<individual.first<<": ";
-        printVector(individual.second);
-        cout<<endl;
-    }
+    // for(auto individual : sortedPop){
+    //     cout<<individual.first<<": ";
+    //     printVector(individual.second);
+    //     cout<<endl;
+    // }
     int index=0;
     set<pair<int, vector<int>>>::reverse_iterator rit;
     for(rit=sortedPop.rbegin(); rit != sortedPop.rend(); rit++){
