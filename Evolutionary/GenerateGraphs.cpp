@@ -45,7 +45,7 @@ void generateGraph(int N, int num_partitions, double edgeProbability, double ses
         // Randomly shuffle partitionNodes
         random_shuffle(partitionNodes.begin(), partitionNodes.end());
         int probability = distribution(gen);
-        if (probability < edgeProbability){
+        if (probability < sessionProbability){
             int idx1=rand()%partitionNodes.size();
             int idx2=rand()%partitionNodes.size();
             if(idx1!=idx2)
