@@ -228,17 +228,16 @@ void evolvePopulation(vector<vector<int>> &currentPopulation, vector<vector<int>
         // Select parents randomly from population
         vector<int> parent1 = currentPopulation[rand() % currentPopulation.size()];
         vector<int> parent2 = currentPopulation[rand() % currentPopulation.size()];
-        vector<int> child = crossover(parent1, parent2);
-        mutate(child);
         if (shouldCrossoverMutate(CROSSOVER_PROBABILITY)) {
             // Apply crossover
-            vector<int> child = crossover(parent1, parent2);
+            vector<int> individual = crossover(parent1, parent2);
             // Perform mutation with a certain probability
             if (shouldCrossoverMutate(MUTATION_PROBABILITY)) {
-                mutate(child);
+                mutate(individual);
             }
+            repair_individual(individual);
+            nextPopulation.push_back(individual);
             crossoverStartIndex++;
-            nextPopulation.push_back(child);
         }
     }
 }
