@@ -158,13 +158,10 @@ int fitness(vector<int> &individual){
 // Function to perform elitism by copying the best individuals to the next generation
 void elitism(vector<vector<int>>& currentPopulation, vector<vector<int>>& nextPopulation, int elitismCount) {
     // Sort the current population by fitness
-    vector<pair<int, vector<int>>> sortedPopulation;
     set<pair<int, vector<int>>> sortedPop;
     for (auto &individual : currentPopulation) {
-        sortedPopulation.push_back({fitness(individual), individual});
         sortedPop.insert({fitness(individual), individual});
     }
-    sort(sortedPopulation.begin(), sortedPopulation.end(), greater<>());
     // for(auto individual : sortedPop){
     //     cout<<individual.first<<": ";
     //     printVector(individual.second);
@@ -181,31 +178,43 @@ void elitism(vector<vector<int>>& currentPopulation, vector<vector<int>>& nextPo
     }
 }
 
+bool shouldCrossoverMutate(int prob) {
+    random_device rd;
+    mt19937 gen(rd());
+
+    // Generate a random probability between 0 and 100
+    uniform_int_distribution<> distribution(0, 1);
+    int probability = distribution(gen);
+
+    // Check if the generated probability is greater than 80%
+    return probability > prob;
+}
+
 // Function to perform one-point crossover between two parents
 vector<int> crossover(vector<int>& parent1,  vector<int>& parent2) {
     // Ensure the parents are of the same size
-    if (parent1.size() != parent2.size()) {
-        cerr << "Error: Parents have different sizes for crossover." << endl;
-        exit(1); // Or handle the error in an appropriate way
-    }
-
-    // Choose a random crossover point
-    int crossoverPoint = rand() % (parent1.size() - 1) + 1; // Ensure crossover point is not at the beginning
-
-    // Create a child by combining genetic material from both parents
-    vector<int> child(parent1.begin(), parent1.begin() + crossoverPoint);
-    child.insert(child.end(), parent2.begin() + crossoverPoint, parent2.end());
-
-    return child;
+    random_device rd;
+    mt19937 gen(rd());
+    // Choose a random index in the first vector
+    uniform_int_distribution<> distribution(0, parent1.size() - 1);
+    int index = distribution(gen);
+    vector<int> result(parent1.begin(), parent1.begin() + index);
+    // Add elements from vector B (i to end)
+    result.insert(result.end(), parent2.begin() + index, parent2.end());
+    return result;
 }
 
 // Function to perform one-point mutation in an individual
 void mutate(vector<int>& individual) {
-    // Choose a random gene to mutate
-    int mutationPoint = rand() % individual.size();
-
-    // Mutate the selected gene (you can customize the mutation logic)
-    individual[mutationPoint] = rand() % 100; // Replace with your mutation logic
+    // Choose two random genes to mutate
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> distribution(0, individual.size() - 1);
+    int indexA = distribution(gen);
+    int indexB = distribution(gen);
+    swap(individual[indexA], individual[indexB]);
+    // // Mutate the selected gene (you can customize the mutation logic)
+    // individual[mutationPoint] = rand() % 100; // Replace with your mutation logic
 }
 
 // Function to evolve the population through crossover and mutation
@@ -213,24 +222,23 @@ void evolvePopulation(vector<vector<int>> &currentPopulation, vector<vector<int>
                       int elitismCount, double crossoverProbability, double mutationProbability) {
     // Perform elitism
     elitism(currentPopulation, nextPopulation, elitismCount);
-
     // Perform crossover and mutation
     int crossoverStartIndex = min(elitismCount, (int)nextPopulation.size());
-    while (crossoverStartIndex < nextPopulation.size()) {
-        // Select parents (you can use tournament selection, roulette wheel, etc.)
+    while (crossoverStartIndex < POPULATION_SIZE) {
+        // Select parents randomly from population
         vector<int> parent1 = currentPopulation[rand() % currentPopulation.size()];
         vector<int> parent2 = currentPopulation[rand() % currentPopulation.size()];
-
-        // Perform crossover with a certain probability
-        if (rand() / static_cast<double>(RAND_MAX) < crossoverProbability) {
+        vector<int> child = crossover(parent1, parent2);
+        mutate(child);
+        if (shouldCrossoverMutate(CROSSOVER_PROBABILITY)) {
             // Apply crossover
-            vector<int> individual = crossover(parent1, parent2);
+            vector<int> child = crossover(parent1, parent2);
             // Perform mutation with a certain probability
-            if (rand() / static_cast<double>(RAND_MAX) < mutationProbability) {
-                mutate(individual);
+            if (shouldCrossoverMutate(MUTATION_PROBABILITY)) {
+                mutate(child);
             }
-            repair_individual(individual);
-            nextPopulation[crossoverStartIndex++] = individual;
+            crossoverStartIndex++;
+            nextPopulation.push_back(child);
         }
     }
 }
@@ -333,19 +341,7 @@ int main()
     ios_base::sync_with_stdio(false); cin.tie(NULL);
     srand(static_cast<unsigned int>(time(0)));
     input();
-    vector<vector<int>> population = generate_population();
-    // n=population.size();
-    for(auto individual : population){
-        printVector(individual);
-    }
-    vector<vector<int>> nextPopulation;
-    elitism(population, nextPopulation, ELITISM_COUNT);
-    // evolvePopulation(population, nextPopulation, ELITISM_COUNT, CROSSOVER_PROBABILITY, MUTATION_PROBABILITY);
-    for(auto individual : nextPopulation){
-        for(auto node : individual){
-            cout<<node<<" ";
-        }
-        cout<<endl;
-    }
-    return 0;   
+    genetic_algorithm();
+
+    return 0;     
 }
