@@ -4,19 +4,27 @@ typedef long long ll;
 
 // Function to generate a random graph with independent partitions
 void generateGraph(int N, int num_partitions, double edgeProbability, double sessionProbability, string inputFileName, string outputFileName) {
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> distribution(0, 1);
     srand(static_cast<unsigned int>(time(0)));
     // Randomly assign partitions to nodes
     vector<int> nodePartitions(N);
+    map<int, int> partition_count;
     for (int i = 0; i < N; ++i) {
-        nodePartitions[i] = rand() % num_partitions;
+        int randNum=rand()%num_partitions;
+        nodePartitions[i] = randNum;
+        partition_count[randNum]++;
     }
+    cout<<"Number of partition formed: "<< partition_count.size()<<"\n";
     // Create an adjacency matrix for the graph
     vector<vector<bool>> graph(N, vector<bool>(N, false));
     int M=0;
     // Connect nodes across partitions with probability edgeProbability
     for (int i = 0; i < N; ++i) {
         for (int j = i + 1; j < N; ++j) {
-            if (rand() < edgeProbability * RAND_MAX && nodePartitions[i] != nodePartitions[j]) {
+            int probability = distribution(gen);
+            if (probability < edgeProbability && nodePartitions[i] != nodePartitions[j]) {
                 if(!graph[i][j]){
                     graph[i][j] = graph[j][i] = true;
                     M++;
@@ -36,7 +44,8 @@ void generateGraph(int N, int num_partitions, double edgeProbability, double ses
         }
         // Randomly shuffle partitionNodes
         random_shuffle(partitionNodes.begin(), partitionNodes.end());
-        if (rand() < edgeProbability * RAND_MAX)
+        int probability = distribution(gen);
+        if (probability < edgeProbability)
             sessions.push_back({partitionNodes[rand()%partitionNodes.size()], partitionNodes[rand()%partitionNodes.size()]});
     }
 
