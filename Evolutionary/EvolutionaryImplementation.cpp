@@ -17,7 +17,7 @@ vector<pair<int,int>> edges, sessions;
 vector<vector<int>> result, adj, adjMatrix;
 int POPULATION_SIZE=20;
 int MAX_GENERATIONS=100;
-int ELITISM_COUNT=5;
+int ELITISM_COUNT=10;
 int CROSSOVER_PROBABILITY=0.7;
 int MUTATION_PROBABILITY=0.05;
 
@@ -162,11 +162,6 @@ void elitism(vector<vector<int>>& currentPopulation, vector<vector<int>>& nextPo
     for (auto &individual : currentPopulation) {
         sortedPop.insert({fitness(individual), individual});
     }
-    // for(auto individual : sortedPop){
-    //     cout<<individual.first<<": ";
-    //     printVector(individual.second);
-    //     cout<<endl;
-    // }
     int index=0;
     set<pair<int, vector<int>>>::reverse_iterator rit;
     for(rit=sortedPop.rbegin(); rit != sortedPop.rend(); rit++){
@@ -213,33 +208,6 @@ void mutate(vector<int>& individual) {
     int indexA = distribution(gen);
     int indexB = distribution(gen);
     swap(individual[indexA], individual[indexB]);
-    // // Mutate the selected gene (you can customize the mutation logic)
-    // individual[mutationPoint] = rand() % 100; // Replace with your mutation logic
-}
-
-// Function to evolve the population through crossover and mutation
-void evolvePopulation(vector<vector<int>> &currentPopulation, vector<vector<int>> &nextPopulation,
-                      int elitismCount, double crossoverProbability, double mutationProbability) {
-    // Perform elitism
-    elitism(currentPopulation, nextPopulation, elitismCount);
-    // Perform crossover and mutation
-    int crossoverStartIndex = min(elitismCount, (int)nextPopulation.size());
-    while (crossoverStartIndex < POPULATION_SIZE) {
-        // Select parents randomly from population
-        vector<int> parent1 = currentPopulation[rand() % currentPopulation.size()];
-        vector<int> parent2 = currentPopulation[rand() % currentPopulation.size()];
-        if (shouldCrossoverMutate(CROSSOVER_PROBABILITY)) {
-            // Apply crossover
-            vector<int> individual = crossover(parent1, parent2);
-            // Perform mutation with a certain probability
-            if (shouldCrossoverMutate(MUTATION_PROBABILITY)) {
-                mutate(individual);
-            }
-            repair_individual(individual);
-            nextPopulation.push_back(individual);
-            crossoverStartIndex++;
-        }
-    }
 }
 
 vector<pair<int, int>> get_defs(vector<int> &individual){
@@ -323,6 +291,30 @@ void repair_individual(vector<int> &individual){
     }
 }
 
+// Function to evolve the population through crossover and mutation
+void evolvePopulation(vector<vector<int>> &currentPopulation, vector<vector<int>> &nextPopulation,
+                      int elitismCount, double crossoverProbability, double mutationProbability) {
+    // Perform elitism
+    elitism(currentPopulation, nextPopulation, elitismCount);
+    // Perform crossover and mutation
+    int crossoverStartIndex = min(elitismCount, (int)nextPopulation.size());
+    while (crossoverStartIndex < POPULATION_SIZE) {
+        // Select parents randomly from population
+        vector<int> parent1 = currentPopulation[rand() % currentPopulation.size()];
+        vector<int> parent2 = currentPopulation[rand() % currentPopulation.size()];
+        if (shouldCrossoverMutate(CROSSOVER_PROBABILITY)) {
+            // Apply crossover
+            vector<int> individual = crossover(parent1, parent2);
+            // Perform mutation with a certain probability
+            if (shouldCrossoverMutate(MUTATION_PROBABILITY)) {
+                mutate(individual);
+            }
+            repair_individual(individual);
+            nextPopulation.push_back(individual);
+            crossoverStartIndex++;
+        }
+    }
+}
 
 void genetic_algorithm(){
     vector<vector<int>> currentPopulation=generate_population();
@@ -333,6 +325,7 @@ void genetic_algorithm(){
         // Replace the current population with the next generation
         currentPopulation = nextPopulation;
     }
+    cout<<"Final answer "<<fitness(currentPopulation[0])<<endl;
 }
 
 int main()
