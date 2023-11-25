@@ -58,7 +58,7 @@ void input(){
         session_nodes.insert(si);
         session_nodes.insert(ti);
     }
-    adj.resize(n+1);
+    adj.resize(n);
     adjMatrix.resize(n,vector<int>(n,0));
     for(auto i:edges){
         if(session_nodes.count(i.first)&&session_nodes.count(i.second)){
@@ -115,7 +115,7 @@ void printVector(vector<int> &arr){
         cout<<endl;
 }
 vector<int> generate_individual(){
-    vector<int> dsu_par(n+1, -1);
+    vector<int> dsu_par(n, -1);
     for(auto session:sessions){
         int s=session.first;
         int t=session.second;
@@ -127,7 +127,7 @@ vector<int> generate_individual(){
             }
         }
     }
-    vector<int> individual(n+1);
+    vector<int> individual(n);
     encoding_individual(dsu_par, individual);
     return individual;
 }
@@ -236,9 +236,61 @@ void evolvePopulation(vector<vector<int>> &currentPopulation, vector<vector<int>
     }
 }
 
+vector<pair<int, int>> get_defs(vector<int> &individual){
+    set<pair<int, int>> defectives;
+    for(int u=0; u<n; u++){
+        for(auto v:adj[u]){
+            if(individual[u]==individual[v]){
+                defectives.insert({u, v});
+            }
+        }
+    }
+    vector<pair<int, int>> defs;
+    for(auto it:defectives){
+        defs.push_back(it);
+    }
+    return defs;
+}
 
+int reassign_partition_number(vector<int> &individual){
+    map<int, vector<int>> partition_groups;
+    for (int i = 0; i < individual.size(); i++)
+        partition_groups[individual[i]].push_back(i);
+    int partition_id=0;
+    for(auto i:partition_groups){
+        for(auto it:i.second){
+            individual[it]=partition_id;
+        }
+        partition_id++;
+    }
+    return partition_id;
+}
+
+bool can_assign(vector<int> &individual){
+    
+}
 
 void repair_individual(vector<int> &individual){
+    int partition_id=reassign_partition_number(individual);
+    random_device rd;
+    mt19937 g(rd());
+    mt19937 gen(rd());
+    vector<pair<int, int>> defs=get_defs(individual);
+    uniform_real_distribution<double> dis(0.0, 1.0);
+    double randValue = dis(gen);
+    if (randValue < 0.5) {
+        shuffle(defs.begin(), defs.end(), g);
+    }
+    for(auto it:defs){
+        int u=it.first;
+        int v=it.second;
+        if(individual[u]==individual[v]){
+
+        }
+    }
+
+
+
 
 }
 
@@ -276,6 +328,5 @@ int main()
         }
         cout<<endl;
     }
-
     return 0;   
 }
