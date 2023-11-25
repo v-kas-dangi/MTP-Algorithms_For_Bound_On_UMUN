@@ -3,7 +3,7 @@ using namespace std;
 typedef long long ll;
 
 // Function to generate a random graph with independent partitions
-void generateGraph(int N, int num_partitions, double edgeProbability, double sessionProbability, string inputFileName, string outputFileName) {
+void generateGraph(int N, int Q, int num_partitions, double edgeProbability, double sessionProbability, string inputFileName, string outputFileName) {
     random_device rd;
     mt19937 gen(rd());
     uniform_int_distribution<> distribution(0, 1);
@@ -34,7 +34,8 @@ void generateGraph(int N, int num_partitions, double edgeProbability, double ses
     }
     // Create sessions and sinks for each partition
     vector<pair<int, int>> sessions;
-    for (int i = 0; i < num_partitions; ++i) {
+    while(sessions.size()<Q){
+        int i=rand()%num_partitions;
         vector<int> partitionNodes;
         // Collect nodes in the current partition
         for (int j = 0; j < N; ++j) {
@@ -81,10 +82,12 @@ void generateGraph(int N, int num_partitions, double edgeProbability, double ses
 }
 
 int main() {
-    int N, num_partitions;
+    int N, Q, num_partitions;
     double edgeProbability, sessionProbability;
     cout << "Enter the number of nodes (N): ";
     cin >> N;
+    cout << "Enter the number of sessions (Q): ";
+    cin >> Q;
     cout << "Enter the number of independent sets (num_partitions): ";
     cin >> num_partitions;
     cout << "Enter the probability of having an edge between two nodes of different independent sets: ";
@@ -95,7 +98,7 @@ int main() {
     string inputFileName = "input.txt";
     string outputFileName = "output.txt";
 
-    generateGraph(N, num_partitions, edgeProbability, sessionProbability, inputFileName, outputFileName);
+    generateGraph(N, Q, num_partitions, edgeProbability, sessionProbability, inputFileName, outputFileName);
 
     cout << "Test case generated successfully!" << endl;
 
