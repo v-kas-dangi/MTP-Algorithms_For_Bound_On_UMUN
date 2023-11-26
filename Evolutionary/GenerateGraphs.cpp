@@ -34,23 +34,17 @@ void generateGraph(int N, int Q, int num_partitions, double edgeProbability, dou
     }
     // Create sessions and sinks for each partition
     vector<pair<int, int>> sessions;
+    vector<int> nodes(N);
+    iota(nodes.begin(), nodes.end(), 0);
     while(sessions.size()<Q){
-        int i=rand()%num_partitions;
-        vector<int> partitionNodes;
-        // Collect nodes in the current partition
-        for (int j = 0; j < N; ++j) {
-            if (nodePartitions[j] == i) {
-                partitionNodes.push_back(j);
-            }
-        }
         // Randomly shuffle partitionNodes
-        random_shuffle(partitionNodes.begin(), partitionNodes.end());
+        random_shuffle(nodes.begin(), nodes.end());
         int probability = distribution(gen);
         if (probability < sessionProbability){
-            int idx1=rand()%partitionNodes.size();
-            int idx2=rand()%partitionNodes.size();
+            int idx1=rand()%nodes.size();
+            int idx2=rand()%nodes.size();
             if(idx1!=idx2)
-                sessions.push_back({partitionNodes[idx1], partitionNodes[idx2]});
+                sessions.push_back({nodes[idx1], nodes[idx2]});
         }
     }
 
