@@ -323,6 +323,7 @@ void genetic_algorithm(){
         vector<vector<int>> nextPopulation;
         evolvePopulation(currentPopulation, nextPopulation, ELITISM_COUNT, CROSSOVER_PROBABILITY, MUTATION_PROBABILITY);
         // Replace the current population with the next generation
+        currentPopulation.clear();
         currentPopulation = nextPopulation;
         cout<<"Fitness for generation "<<generation<<" : "<<fitness(currentPopulation[0])<<endl;
     }
